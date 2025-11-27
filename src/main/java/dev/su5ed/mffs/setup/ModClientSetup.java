@@ -1,6 +1,7 @@
 package dev.su5ed.mffs.setup;
 
 import dev.su5ed.mffs.MFFSMod;
+import dev.su5ed.mffs.api.card.IdentificationCard;
 import dev.su5ed.mffs.block.ForceFieldBlockImpl;
 import dev.su5ed.mffs.render.*;
 import dev.su5ed.mffs.render.model.*;
@@ -22,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
@@ -149,7 +151,7 @@ public final class ModClientSetup {
             }
         }, ModFluids.FORTRON_FLUID_TYPE);
     }
-    
+
     @SubscribeEvent
     public static void registerRenderPipelines(RegisterRenderPipelinesEvent event) {
         event.registerPipeline(ModRenderPipeline.HOLO_TRIANGLE);
@@ -165,7 +167,40 @@ public final class ModClientSetup {
     public static void modifyBakingResult(ModelEvent.ModifyBakingResult event) {
         Map<BlockState, BlockStateModel> models = event.getBakingResult().blockStateModels();
         ModBlocks.FORCE_FIELD.get().getStateDefinition().getPossibleStates().forEach(state ->
-            models.computeIfPresent(state, (location, model) -> new ForceFieldBlockModel(model)));
+                models.computeIfPresent(state, (location, model) -> new ForceFieldBlockModel(model)));
+
+        // For item models
+        event.getBakingResult().itemStackModels().computeIfPresent(
+                // The resource location the model to modify.
+                // Typically the item registry name; however, can be anything due to the ITEM_MODEL data component
+                ModItems.ID_CARD.getKey().location(),
+                // A BiFunction with the location and the original models as parameters, returning the new model.
+                (location, model) -> new PlayerHeadItemModel(model));
+    }
+
+    @SubscribeEvent
+    public static void registerConditionalProperties(RegisterConditionalItemModelPropertyEvent event) {
+        event.register(
+                ResourceLocation.fromNamespaceAndPath(MFFSMod.MODID, "bar_visible"),
+                ConditionalHeadModel.MAP_CODEC
+        );
+    }
+
+    @SubscribeEvent
+    public static void registerItemColors(RegisterItemDecorationsEvent event) {
+
+        event.register((stack, layer) -> {
+            // Nur layer 0 einfärben
+            if (layer == 0) {
+                // Dynamische Condition aus deinem Conditional
+                IdentificationCard card = stack.(ModCapabilities.IDENTIFICATION_CARD);
+                return stack.isBarVisible()
+                        ? 0xFF0000   // rot
+                        : 0xFFFFFF;  // Standardfarbe
+            }
+            return 0xFFFFFF;
+        }, ModItems.ID_CARD.get());
+
     }
 
     private ModClientSetup() {
