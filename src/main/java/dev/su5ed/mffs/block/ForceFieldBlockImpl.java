@@ -178,7 +178,31 @@ public class ForceFieldBlockImpl extends Block implements ForceFieldBlock, Entit
                         living.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 1));
                     }
                     BiometricIdentifier identifier = projector.getBiometricIdentifier();
-                    if (!(entity instanceof Player player) || !isSneaking(entity) || !player.isCreative() && (identifier == null || !identifier.isAccessGranted(player, FieldPermission.WARP))) {
+                    //Entity is Player
+                    if (entity instanceof Player p) {
+                        System.out.println("Identify" + identifier == null);
+                        // Player has permissions: never shock
+                        if (identifier != null && identifier.isAccessGranted(p, FieldPermission.WARP)) {
+                            if(identifier.isActive()){
+                                System.out.println("Player has permissions active");
+                                return;
+                            }else{
+                                //TODO: What to do if identifier is not active
+                                ModUtil.shockEntity(entity, 1);
+                                System.out.println("Player has permissions not active");
+                            }
+                            return;
+                        }
+                        // Player doesnt has permissions: shock
+                        if ((identifier == null || (!p.isCreative()))) {
+                            System.out.println("Player doesnt permissions");
+                            ModUtil.shockEntity(entity, 1);
+                            return;
+                        }
+                    }
+                    //Entity is something else
+                    if (!(entity instanceof Player player) || !isSneaking(entity)  || (!player.isCreative() && (identifier == null || !identifier.isAccessGranted(player, FieldPermission.WARP)))) {
+                        System.out.println("something else");
                         ModUtil.shockEntity(entity, Integer.MAX_VALUE);
                     }
                 }

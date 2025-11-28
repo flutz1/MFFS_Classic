@@ -78,11 +78,13 @@ public class BiometricIdentifierBlockEntity extends FortronBlockEntity implement
 
     @Override
     public boolean isAccessGranted(Player player, FieldPermission permission) {
+      // System.out.println("Active "+this.isActive());
+      // System.out.println("super "+super.isActive());
         return !isActive() || canOpBypass(player) || StreamEx.of(this.masterSlot)
             .append(this.identitySlots)
             .anyMatch(slot -> {
                 IdentificationCard card = slot.getItem().getCapability(ModCapabilities.IDENTIFICATION_CARD);
-                return card != null && card.checkIdentity(player);
+                return card != null && card.checkIdentity(player) && card.getPermissions().contains(permission) ;
             });
     }
 

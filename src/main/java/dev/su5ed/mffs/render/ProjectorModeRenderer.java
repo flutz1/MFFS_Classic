@@ -130,7 +130,6 @@ public final class ProjectorModeRenderer {
             float scale = 0.2f;
             float radius = 1.5f;
             int steps = (int) Math.ceil(Math.PI / Math.atan(1.0D / radius / 2));
-
             poseStack.pushPose();
             hoverObject(poseStack, ticks, scale, this.centerPos);
             for (int phi_n = 0; phi_n < 2 * steps; phi_n++) {
